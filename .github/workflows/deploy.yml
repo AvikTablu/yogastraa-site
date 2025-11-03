@@ -4,62 +4,39 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # optional: run daily at 02:00 UTC
 
+# Important explicit permissions so GITHUB_TOKEN can publish to gh-pages
 permissions:
-  contents: write        # allow push to repository contents (create gh-pages branch)
-  pages: write           # allow Pages deployment
-  id-token: write        # (not strictly required here, but safe)
+  contents: read        # read repo content
+  pages: write          # allow Pages deployment
+  id-token: write       # sometimes needed for other actions (safe to include)
+  pull-requests: write  # not required but harmless
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true   # keep GITHUB_TOKEN for later steps
 
-      - name: Use Node.js 18
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '22' # match your local Node if you want
 
-      - name: Install dependencies (if any)
+      - name: Install dependencies (if you use any)
         run: |
           if [ -f package.json ]; then npm ci || npm install; fi
 
-      - name: Generate static site
+      - name: Run generator
         run: |
-          # run the script that writes into public/
-          npm run generate
-
-      - name: List public folder (debug)
-        run: |
-          echo "---- public folder contents ----"
-          ls -la public || true
-          echo "--------------------------------"
-
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          # optional: keep_history: true
-
-      # <-- ADD THIS STEP to ensure admin is preserved and has required files
-      - name: Ensure admin CNAME + 404 fallback exist
-        run: |
-          # ensure admin folder exists
-          mkdir -p public/admin
-
-          # create admin CNAME if missing (won't overwrite if you want to keep committed CNAME)
-          if [ ! -f public/admin/CNAME ]; then
-            echo "admin.yogastraa.com" > public/admin/CNAME
-            echo "Created public/admin/CNAME (action)"
-          else
-            echo "public/admin/CNAME already present"
-          fi
+          node --version
+          node scripts/generate-articles.js
 
       - name: Configure git (for gh-pages commit)
         run: |
@@ -71,3 +48,5 @@ jobs:
         with:
           publish_dir: ./public
           publish_branch: gh-pages
+          # No token input: the action will use GITHUB_TOKEN automatically,
+          # as long as workflow permissions and persist-credentials are set.
