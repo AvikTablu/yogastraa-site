@@ -46,3 +46,28 @@ jobs:
           publish_dir: ./public
           publish_branch: gh-pages
           # optional: keep_history: true
+
+      # <-- ADD THIS STEP to ensure admin is preserved and has required files
+      - name: Ensure admin CNAME + 404 fallback exist
+        run: |
+          # ensure admin folder exists
+          mkdir -p public/admin
+
+          # create admin CNAME if missing (won't overwrite if you want to keep committed CNAME)
+          if [ ! -f public/admin/CNAME ]; then
+            echo "admin.yogastraa.com" > public/admin/CNAME
+            echo "Created public/admin/CNAME (action)"
+          else
+            echo "public/admin/CNAME already present"
+          fi
+
+      - name: Configure git (for gh-pages commit)
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          publish_dir: ./public
+          publish_branch: gh-pages
