@@ -5,14 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: '0 2 * * *' # optional: run daily at 02:00 UTC
+    - cron: '0 2 * * *'
 
-# Important explicit permissions so GITHUB_TOKEN can publish to gh-pages
 permissions:
-  contents: read        # read repo content
-  pages: write          # allow Pages deployment
-  id-token: write       # sometimes needed for other actions (safe to include)
-  pull-requests: write  # not required but harmless
+  contents: write    # IMPORTANT: allow writing repo files (gh-pages commit)
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
@@ -22,12 +20,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true   # keep GITHUB_TOKEN for later steps
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # match your local Node if you want
+          node-version: '22'
 
       - name: Install dependencies (if you use any)
         run: |
@@ -48,5 +46,4 @@ jobs:
         with:
           publish_dir: ./public
           publish_branch: gh-pages
-          # No token input: the action will use GITHUB_TOKEN automatically,
-          # as long as workflow permissions and persist-credentials are set.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
