@@ -10,27 +10,22 @@
 
     gtag('config', 'G-32V4J2N9GX');
   </script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="author" content="The Spiders">
-  <!-- SEO Meta Tags -->
   <title>Tips — Yogastraa</title>
   <meta name="description" content="Quick yoga tips from Yogastraa — small actionable practices to improve your daily routine." />
-  <meta name="keywords" content="Yogastraa, Yogastra, AI yoga coach, AI yoga app, AI chat yoga teacher, AI meditation, guided yoga sessions, learn yoga with AI, personalized yoga app, yoga therapy, pranayama, mudra, meditation app, yoga for beginners, yoga for wellness, yoga treatment programs, AI wellness app, yoga and mindfulness, AI yoga guide, intelligent yoga app, yoga coach app, health and fitness app, yoga learning platform, yoga for back pain, yoga for anxiety, yoga mindfulness app">
+  <meta name="keywords" content="yoga tips, yogastraa tips, pranayama tips" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://yogastraa.com/knowledge/tips/">
-  <!-- Open Graph -->
+  <!-- OG -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Tips — Yogastraa" />
-  <meta property="og:description" content="Read yoga tips from Yogastraa — AI-guided practices, pranayama, therapeutic sequences and more." />
+  <meta property="og:description" content="Quick yoga tips from Yogastraa." />
   <meta property="og:url" content="https://yogastraa.com/knowledge/tips/" />
   <meta property="og:image" content="https://yogastraa.com/assets/yogastraa.jpg">
-  <meta property="og:locale" content="en_US">
-  <!-- Favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16x16.png">
-  <link rel="manifest" href="./assets/site.webmanifest">
+
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <script src="https://kit.fontawesome.com/779591332f.js" crossorigin="anonymous"></script>
@@ -84,7 +79,7 @@
   </style>
 </head>
 <body>
-  <!-- navbar -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-xl navbar-dark bg-dark mb-0">
     <div class="container">
       <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
@@ -142,7 +137,16 @@
 
   <main class="container py-5">
     <h1 class="mb-4">Quick Tips</h1>
-    <div id="tipsList" class="list-group"></div>
+
+    <!-- SERVER-GENERATED list for SEO -->
+    <section aria-label="Tips list (server-rendered)">
+      <ul class="list-group">
+        {{TIP_ROWS}}
+      </ul>
+    </section>
+
+    <!-- client-side fallback (keeps your dynamic behavior) -->
+    <div id="tipsList" class="list-group" style="display:none;"></div>
     <div id="tipsLoading" class="text-center my-5">Loading tips…</div>
     <div id="tipsError" class="text-danger d-none">Failed to load tips. Try again later.</div>
   </main>
@@ -185,55 +189,43 @@
       });
   </script>
 
+  <!-- keep your client-side fetch script as fallback (same as current) -->
   <script>
-    const API_TIPS = 'https://yogastra-backend-2d084cc0cf9e.herokuapp.com/tips';
-    const list = document.getElementById('tipsList');
-    const l = document.getElementById('tipsLoading');
-    const er = document.getElementById('tipsError');
+    (function(){
+      const API_TIPS = 'https://yogastra-backend-2d084cc0cf9e.herokuapp.com/tips';
+      const list = document.getElementById('tipsList');
+      const l = document.getElementById('tipsLoading');
+      const er = document.getElementById('tipsError');
 
-    // Format an ISO date string like '2025-10-28T19:42:51.000+00:00' to 'DD/MM/YYYY'
-    function formatDateISOToDDMMYYYY(iso){
-      if(!iso) return '';
-      const d = new Date(iso);
-      const dd = String(d.getUTCDate()).padStart(2,'0');
-      const mm = String(d.getUTCMonth()+1).padStart(2,'0');
-      const yyyy = d.getUTCFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    }
+      function formatDateISOToDDMMYYYY(iso){
+        if(!iso) return '';
+        const d = new Date(iso);
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+        const yyyy = d.getUTCFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
 
-    fetch(API_TIPS)
-      .then(r => { if(!r.ok) throw new Error('Network'); return r.json(); })
-      .then(data => {
+      fetch(API_TIPS).then(r=>{ if(!r.ok) throw new Error('Network'); return r.json(); })
+      .then(data=>{
         l.style.display='none';
         if(!Array.isArray(data) || data.length===0){
-          list.innerHTML = '<p>No tips published yet.</p>';
+          list.innerHTML = '<p>No tips published yet.</p>'; list.style.display='';
           return;
         }
-        data.forEach(t => {
+        list.style.display='';
+        data.forEach(t=>{
           const item = document.createElement('div');
           item.className = 'list-group-item list-group-item-action';
-          // Build categories badges from either t.categories (array) or t.category (single)
-          const cats = Array.isArray(t.categories)
-            ? t.categories
-            : (t.category ? [t.category] : []);
-          const badgesHtml = cats
-            .map(c => `<span class="badge rounded-pill bg-secondary me-1 mb-1">${c.name}</span>`)
-            .join('');
-          item.innerHTML = `
-            <p class="mb-1">${t.content}</p>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <div class="d-flex flex-wrap gap-1" aria-label="Categories">${badgesHtml || ''}</div>
-              <small class="text-muted ms-2">${formatDateISOToDDMMYYYY(t.createdAt)}</small>
-            </div>
-          `;
+          const cats = Array.isArray(t.categories) ? t.categories : (t.category ? [t.category] : []);
+          const badgesHtml = cats.map(c=>`<span class="badge rounded-pill bg-secondary me-1 mb-1">${c.name}</span>`).join('');
+          item.innerHTML = `<p class="mb-1">${t.content}</p><div class="d-flex justify-content-between align-items-center mt-1"><div class="d-flex flex-wrap gap-1">${badgesHtml||''}</div><small class="text-muted">${formatDateISOToDDMMYYYY(t.createdAt)}</small></div>`;
           list.appendChild(item);
         });
-      })
-      .catch(err => {
-        console.error(err);
-        l.style.display='none';
-        er.classList.remove('d-none');
+      }).catch(e=>{
+        console.error(e); l.style.display='none'; er.classList.remove('d-none');
       });
+    })();
   </script>
 </body>
 </html>
