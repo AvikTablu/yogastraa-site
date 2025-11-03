@@ -1,0 +1,12 @@
+{
+  "name": "yogastraa-site",
+  "version": "1.0.0",
+  "description": "Yogastraa static site + generator",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-articles.js"
+  },
+  "author": "Yogastraa Team",
+  "license": "MIT",
+  "dependencies": {}
+}
