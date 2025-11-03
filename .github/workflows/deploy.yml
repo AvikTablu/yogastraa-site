@@ -4,40 +4,45 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *' # once per day at 02:00 UTC (optional)
+
+permissions:
+  contents: write        # allow push to repository contents (create gh-pages branch)
+  pages: write           # allow Pages deployment
+  id-token: write        # (not strictly required here, but safe)
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Use Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # matches your local Node
+          node-version: 18
 
-      - name: Install dependencies (if you use any)
+      - name: Install dependencies (if any)
         run: |
           if [ -f package.json ]; then npm ci || npm install; fi
 
-      - name: Run generator
+      - name: Generate static site
         run: |
-          node --version
-          node scripts/generate-articles.js
+          # run the script that writes into public/
+          npm run generate
 
-      - name: Configure git (for gh-pages commit)
+      - name: List public folder (debug)
         run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          echo "---- public folder contents ----"
+          ls -la public || true
+          echo "--------------------------------"
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
-          # The action uses GITHUB_TOKEN automatically — no extra secrets required
+          # optional: keep_history: true
