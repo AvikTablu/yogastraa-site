@@ -1,0 +1,43 @@
+name: Build & Publish site
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # once per day at 02:00 UTC (optional)
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # matches your local Node
+
+      - name: Install dependencies (if you use any)
+        run: |
+          if [ -f package.json ]; then npm ci || npm install; fi
+
+      - name: Run generator
+        run: |
+          node --version
+          node scripts/generate-articles.js
+
+      - name: Configure git (for gh-pages commit)
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          publish_dir: ./public
+          publish_branch: gh-pages
+          # The action uses GITHUB_TOKEN automatically — no extra secrets required
