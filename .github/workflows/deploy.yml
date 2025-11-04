@@ -45,3 +45,4 @@ jobs:
         with:
           publish_dir: ./public
           publish_branch: gh-pages
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
