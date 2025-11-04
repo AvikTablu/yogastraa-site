@@ -83,7 +83,7 @@
   <nav class="navbar navbar-expand-xl navbar-dark bg-dark mb-0">
     <div class="container">
       <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-        <img src="./assets/logo.png" width="188" height="50" alt="Yogastraa">
+        <img src="/assets/logo.png" width="188" height="50" alt="Yogastraa">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsId" aria-controls="navbarsId" aria-expanded="false">
         <span class="navbar-toggler-icon"></span>
@@ -138,17 +138,28 @@
   <main class="container py-5">
     <h1 class="mb-4">Quick Tips</h1>
 
-    <!-- SERVER-GENERATED list for SEO -->
-    <section aria-label="Tips list (server-rendered)">
-      <ul class="list-group">
-        <li class="tip-item">This is a demo tip 1. <small class="text-muted">(Strength)</small> <small class="text-muted ms-2">2025-10-28</small></li>
-<li class="tip-item">This is a demo tip 2. <small class="text-muted">(Flexibility)</small> <small class="text-muted ms-2">2025-10-28</small></li>
-      </ul>
-    </section>
+    <!-- server-rendered tips list-group for SEO -->
+    <div id="tipsList" class="list-group">
+      
+  <div class="list-group-item d-flex justify-content-between align-items-start">
+    <div>
+      <div class="mb-1">This is a demo tip 1.</div>
+      <small class="text-muted">Strength</small>
+    </div>
+    <small class="text-muted ms-3">28/10/2025</small>
+  </div>
 
-    <!-- client-side fallback (keeps your dynamic behavior) -->
-    <div id="tipsList" class="list-group" style="display:none;"></div>
-    <div id="tipsLoading" class="text-center my-5">Loading tips…</div>
+  <div class="list-group-item d-flex justify-content-between align-items-start">
+    <div>
+      <div class="mb-1">This is a demo tip 2.</div>
+      <small class="text-muted">Flexibility</small>
+    </div>
+    <small class="text-muted ms-3">28/10/2025</small>
+  </div>
+    </div>
+
+    <!-- fallback elements used by client-side fetch script -->
+    <div id="tipsLoading" class="text-center my-4 d-none">Loading tips…</div>
     <div id="tipsError" class="text-danger d-none">Failed to load tips. Try again later.</div>
   </main>
 
@@ -190,7 +201,7 @@
       });
   </script>
 
-  <!-- keep your client-side fetch script as fallback (same as current) -->
+  <!-- client-side fetch fallback (keeps dynamic behaviour) -->
   <script>
     (function(){
       const API_TIPS = 'https://yogastra-backend-2d084cc0cf9e.herokuapp.com/tips';
@@ -207,14 +218,22 @@
         return `${dd}/${mm}/${yyyy}`;
       }
 
+      // if server-rendered content exists, skip fetching (faster)
+      if (list && list.children.length > 0) {
+        // content is already rendered (SEO) — do nothing
+        return;
+      }
+
+      if (l) l.classList.remove('d-none');
+
       fetch(API_TIPS).then(r=>{ if(!r.ok) throw new Error('Network'); return r.json(); })
       .then(data=>{
-        l.style.display='none';
+        if (l) l.classList.add('d-none');
         if(!Array.isArray(data) || data.length===0){
-          list.innerHTML = '<p>No tips published yet.</p>'; list.style.display='';
+          if (list) { list.innerHTML = '<p>No tips published yet.</p>'; list.style.display=''; }
           return;
         }
-        list.style.display='';
+        if (list) list.style.display = '';
         data.forEach(t=>{
           const item = document.createElement('div');
           item.className = 'list-group-item list-group-item-action';
@@ -224,7 +243,7 @@
           list.appendChild(item);
         });
       }).catch(e=>{
-        console.error(e); l.style.display='none'; er.classList.remove('d-none');
+        console.error(e); if (l) l.classList.add('d-none'); if (er) er.classList.remove('d-none');
       });
     })();
   </script>
