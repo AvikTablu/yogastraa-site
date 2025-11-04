@@ -8,9 +8,9 @@ on:
     - cron: '0 * * * *'   # every hour (UTC)
 
 permissions:
-  contents: write   # needed to commit/push
-  pages: write      # needed for Pages
-  id-token: write
+  contents: write   # allow committing & pushing
+  pages: write      # allow publishing pages
+  id-token: write   # required by some actions (harmless if unused)
 
 jobs:
   build-and-deploy:
