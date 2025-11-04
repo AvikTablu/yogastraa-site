@@ -24,7 +24,6 @@ function escapeHtml(s) {
 /** convert simple plain-text content to paragraphs (safe) */
 function textToHtml(text) {
     if (!text) return '';
-    // split on double newlines for paragraphs
     const parts = String(text).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
     return parts.map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`).join('\n');
 }
@@ -36,7 +35,6 @@ async function fetchJson(url) {
 }
 
 async function loadTemplate(nameList) {
-    // nameList is array of candidate names; return first that exists
     for (const name of nameList) {
         const p = path.join('templates', name);
         try {
@@ -58,6 +56,14 @@ function prettyDateISO(dateStr) {
         const d = new Date(dateStr);
         return d.toLocaleDateString('en-GB'); // DD/MM/YYYY style
     } catch (e) { return dateStr; }
+}
+
+function excerptText(text, max = 220) {
+    if (!text) return '';
+    const t = String(text).replace(/\s+/g, ' ').trim();
+    if (t.length <= max) return t;
+    const truncated = t.slice(0, max);
+    return truncated.replace(/\s+\S*$/, '') + '...';
 }
 
 async function main() {
@@ -94,17 +100,13 @@ async function main() {
         const urlPathFile = `/knowledge/articles/${slug}.html`;
         const canonicalUrl = `${baseUrl}${urlPathDir}`;
 
-        // keywords: categories + healthConditions names
         const catNames = (Array.isArray(a.categories) ? a.categories.map(c => c.name) : []).filter(Boolean);
         const hcNames = (Array.isArray(a.healthConditions) ? a.healthConditions.map(h => h.name) : []).filter(Boolean);
         const keywords = Array.from(new Set([...catNames, ...hcNames])).join(', ');
 
-        // content safe HTML
         const contentHtml = textToHtml(a.content || '');
-
         const categoriesStr = catNames.length ? catNames.map(escapeHtml).join(', ') : 'General';
 
-        // populate template placeholders
         const html = articleTpl
             .replaceAll('{{TITLE}}', escapeHtml(title))
             .replaceAll('{{META_DESC}}', escapeHtml(description))
@@ -129,25 +131,54 @@ async function main() {
         console.log(`Wrote article: ${slug}`);
     }
 
-    // Generate articles list page (server-side generated HTML for SEO)
+    // --------------------------
+    // Generate articles list page: produce card grid HTML (server-rendered)
+    // --------------------------
     const articleRowsHtml = articlePages.map(p => {
-        const d = p.date ? p.date.split('T')[0] : '';
-        return `<li class="article-item"><a href="${p.urlDir}">${escapeHtml(p.title)}</a> <small class="text-muted">${escapeHtml(d)}</small></li>`;
+        const found = articles.find(a => (a.slug || `article-${a.id}`) === p.slug) || {};
+        const datePretty = found.createdAt ? prettyDateISO(found.createdAt) : '';
+        const excerpt = excerptText(found.content || '', 240);
+        const badges = (Array.isArray(found.categories) ? found.categories : []).map(c => `<span class="badge rounded-pill bg-secondary me-1 mb-1">${escapeHtml(c.name)}</span>`).join('');
+        const author = escapeHtml(found.author || 'Yogastraa Team');
+
+        return `
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${escapeHtml(p.title)}</h5>
+        <p class="card-text text-muted small fst-italic">By ${author} · ${escapeHtml(datePretty)}</p>
+        <p class="card-text flex-grow-1">${escapeHtml(excerpt)}</p>
+        ${badges ? `<div class="d-flex flex-wrap gap-1 mt-1">${badges}</div>` : ''}
+        <a href="${p.urlDir}" class="btn btn-sm btn-primary mt-3"><b>Read article</b></a>
+      </div>
+    </div>
+  </div>
+        `;
     }).join('\n');
 
     const articlesListHtml = listTpl.replaceAll('{{ARTICLE_ROWS}}', articleRowsHtml);
     await fs.writeFile(path.join(ARTICLES_DIR, 'index.html'), articlesListHtml, 'utf-8');
-    // also create flat file at /knowledge/articles.html for old links (optional)
     await fs.writeFile(path.join(OUT_DIR, 'knowledge', 'articles.html'), articlesListHtml, 'utf-8').catch(() => { });
     console.log('Wrote articles list');
 
-    // Generate tips list page (no individual pages)
-    const tipsRowsHtml = tips.map(t => {
+    // --------------------------
+    // Generate tips list page (server-rendered list-group items)
+    // --------------------------
+    const tipRowsHtml = (tips || []).map(t => {
         const cat = t.category?.name || '';
-        const date = t.createdAt ? (new Date(t.createdAt)).toISOString().split('T')[0] : '';
-        return `<li class="tip-item">${escapeHtml(t.content)} <small class="text-muted">(${escapeHtml(cat)})</small> <small class="text-muted ms-2">${escapeHtml(date)}</small></li>`;
+        const datePretty = t.createdAt ? prettyDateISO(t.createdAt) : '';
+        // create a list-group-item element (server-rendered) — includes badge + date
+        return `
+  <div class="list-group-item d-flex justify-content-between align-items-start">
+    <div>
+      <div class="mb-1">${escapeHtml(t.content)}</div>
+      ${cat ? `<small class="text-muted">${escapeHtml(cat)}</small>` : ''}
+    </div>
+    <small class="text-muted ms-3">${escapeHtml(datePretty)}</small>
+  </div>`;
     }).join('\n');
-    const tipsHtml = tipsListTpl.replaceAll('{{TIP_ROWS}}', tipsRowsHtml);
+
+    const tipsHtml = tipsListTpl.replaceAll('{{TIP_ROWS}}', tipRowsHtml);
     await fs.writeFile(path.join(TIPS_DIR, 'index.html'), tipsHtml, 'utf-8');
     await fs.writeFile(path.join(OUT_DIR, 'knowledge', 'tips.html'), tipsHtml, 'utf-8').catch(() => { });
     console.log('Wrote tips list');
@@ -168,7 +199,6 @@ async function main() {
         const found = articles.find(a => (a.slug || `article-${a.id}`) === p.slug);
         const lastmod = found?.updatedAt ? formatISO(found.updatedAt) : new Date().toISOString();
         urls.push({ loc: p.urlDir, lastmod });
-        // also include flat file url
         urls.push({ loc: p.urlFile, lastmod });
     }
 
