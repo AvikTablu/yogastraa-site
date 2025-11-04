@@ -162,17 +162,27 @@
       <h1>{{TITLE}}</h1>
       <p class="text-muted">By {{AUTHOR}} · <time datetime="{{DATE}}">{{DATE_PRETTY}}</time></p>
 
-      <div class="mb-3">
-        <img src="{{IMAGE}}" alt="{{TITLE}}" class="img-fluid rounded" />
-      </div>
+      <!-- IMAGE REMOVED ON PURPOSE (per your request) -->
+      <!-- If you later want the image back, re-add this block:
+         <div class="mb-3">
+           <img src="{{IMAGE}}" alt="{{TITLE}}" class="img-fluid rounded" />
+         </div>
+      -->
 
       <div class="article-content">
         {{CONTENT}}
       </div>
 
       <hr/>
-      <p class="small text-muted">Categories: {{CATEGORIES}}</p>
-      <p class="small text-muted">URL: <a href="{{URL}}">{{URL}}</a></p>
+
+      <!-- categories will be converted to badges by the small script below -->
+      <div id="articleCategories" aria-label="Article categories (badges)">
+        <!-- the generator still provides a comma-separated {{CATEGORIES}} string,
+             the script will split and render badges here -->
+      </div>
+
+      <!-- URL removed as requested -->
+
     </article>
   </main>
 
@@ -211,6 +221,24 @@
           var currentYearMobile = new Date().getFullYear();
           yearElement.textContent = currentYearMobile;
       });
+  </script>
+
+  <!-- small script to turn the comma-separated {{CATEGORIES}} into badge elements -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      // the generator still replaces {{CATEGORIES}} with a comma-separated string like "Strength, Flexibility"
+      var raw = `{{CATEGORIES}}`.trim();
+      if(!raw) return;
+      var container = document.getElementById('articleCategories');
+      // split on comma and/or semicolon
+      var parts = raw.split(/\s*,\s*|\s*;\s*/).filter(Boolean);
+      parts.forEach(function(p){
+        var span = document.createElement('span');
+        span.className = 'badge rounded-pill bg-secondary me-1 mb-1';
+        span.textContent = p;
+        container.appendChild(span);
+      });
+    });
   </script>
 </body>
 </html>
