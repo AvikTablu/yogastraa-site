@@ -3,12 +3,15 @@ name: Build & Publish site
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:     # manual run from Actions UI
   schedule:
-    - cron: '0 2 * * *'
+    # choose one of the cron lines below and keep the others commented
+    - cron: '0 * * * *'   # every hour (UTC)
+    #- cron: '0 */6 * * *' # every 6 hours (UTC)
+    #- cron: '0 2 * * *'   # daily at 02:00 UTC
 
 permissions:
-  contents: write    # IMPORTANT: allow writing repo files (gh-pages commit)
+  contents: write   # required for actions-gh-pages to push
   pages: write
   id-token: write
 
@@ -20,12 +23,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22'  # set to the Node version you use locally
 
       - name: Install dependencies (if you use any)
         run: |
@@ -46,4 +48,4 @@ jobs:
         with:
           publish_dir: ./public
           publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # This action uses the automatically provided GITHUB_TOKEN so no extra secrets are required.
