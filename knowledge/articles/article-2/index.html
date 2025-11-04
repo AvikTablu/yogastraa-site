@@ -162,17 +162,27 @@
       <h1>Article 2</h1>
       <p class="text-muted">By Yogastraa Team · <time datetime="2025-10-28T19:43:16.000Z">28/10/2025</time></p>
 
-      <div class="mb-3">
-        <img src="https://yogastraa.com/assets/yogastraa.jpg" alt="Article 2" class="img-fluid rounded" />
-      </div>
+      <!-- IMAGE REMOVED ON PURPOSE (per your request) -->
+      <!-- If you later want the image back, re-add this block:
+         <div class="mb-3">
+           <img src="https://yogastraa.com/assets/yogastraa.jpg" alt="Article 2" class="img-fluid rounded" />
+         </div>
+      -->
 
       <div class="article-content">
         <p>This is a demo article. This is a demo article. This is a demo article. This is a demo article. This is a demo article. This is a demo article.</p>
       </div>
 
       <hr/>
-      <p class="small text-muted">Categories: Flexibility, Balance</p>
-      <p class="small text-muted">URL: <a href="https://yogastraa.com/knowledge/articles/article-2/">https://yogastraa.com/knowledge/articles/article-2/</a></p>
+
+      <!-- categories will be converted to badges by the small script below -->
+      <div id="articleCategories" aria-label="Article categories (badges)">
+        <!-- the generator still provides a comma-separated Flexibility, Balance string,
+             the script will split and render badges here -->
+      </div>
+
+      <!-- URL removed as requested -->
+
     </article>
   </main>
 
@@ -211,6 +221,24 @@
           var currentYearMobile = new Date().getFullYear();
           yearElement.textContent = currentYearMobile;
       });
+  </script>
+
+  <!-- small script to turn the comma-separated Flexibility, Balance into badge elements -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      // the generator still replaces Flexibility, Balance with a comma-separated string like "Strength, Flexibility"
+      var raw = `Flexibility, Balance`.trim();
+      if(!raw) return;
+      var container = document.getElementById('articleCategories');
+      // split on comma and/or semicolon
+      var parts = raw.split(/\s*,\s*|\s*;\s*/).filter(Boolean);
+      parts.forEach(function(p){
+        var span = document.createElement('span');
+        span.className = 'badge rounded-pill bg-secondary me-1 mb-1';
+        span.textContent = p;
+        container.appendChild(span);
+      });
+    });
   </script>
 </body>
 </html>
