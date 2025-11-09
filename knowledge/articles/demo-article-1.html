@@ -162,16 +162,38 @@
       <h1>Demo Article 1</h1>
       <p class="text-muted">By Yogastraa Team · <time datetime="2025-11-09T07:54:58.000Z">09/11/2025</time></p>
 
-      <!-- IMAGE REMOVED ON PURPOSE (per your request) -->
-      <!-- If you later want the image back, re-add this block:
-         <div class="mb-3">
-           <img src="https://yogastraa.com/assets/yogastraa.jpg" alt="Demo Article 1" class="img-fluid rounded" />
-         </div>
-      -->
+      <!-- IMAGES CAROUSEL placeholder: generator will replace with bootstrap carousel or single img -->
+      
+<div id="carousel-demo-article-1" class="carousel slide mb-3 article-carousel" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carousel-demo-article-1" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+<button type="button" data-bs-target="#carousel-demo-article-1" data-bs-slide-to="1"  aria-label="Slide 2"></button>
+<button type="button" data-bs-target="#carousel-demo-article-1" data-bs-slide-to="2"  aria-label="Slide 3"></button>
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active"><img src="https://res.cloudinary.com/hculyaijt/image/upload/v1762684859/yogastra/articles/msjigeakg8xuybzgkrer.webp" class="d-block w-100" alt="Demo Article 1"></div>
+<div class="carousel-item "><img src="https://res.cloudinary.com/hculyaijt/image/upload/v1762688695/yogastra/articles/vcfgibx9lws9wdwwdkzo.webp" class="d-block w-100" alt="Demo Article 1"></div>
+<div class="carousel-item "><img src="https://res.cloudinary.com/hculyaijt/image/upload/v1762684859/yogastra/articles/czxsymsbfizzljs8phwg.webp" class="d-block w-100" alt="Demo Article 1"></div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carousel-demo-article-1" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carousel-demo-article-1" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
 
       <div class="article-content">
         <p>This is a demo article. This is a demo article. This is a demo article. This is a demo article. This is a demo article. This is a demo article. This is a demo article.</p>
       </div>
+
+      <!-- VIDEO EMBED placeholder: generator will put youtube embed here if available -->
+      
+<div class="article-video ratio ratio-16x9">
+  <iframe src="https://www.youtube.com/embed/g3yGVJa19bw" title="Demo Article 1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
 
       <hr/>
 
@@ -180,8 +202,6 @@
         <!-- the generator still provides a comma-separated Strength, Flexibility string,
              the script will split and render badges here -->
       </div>
-
-      <!-- URL removed as requested -->
 
     </article>
   </main>
@@ -223,14 +243,12 @@
       });
   </script>
 
-  <!-- small script to turn the comma-separated Strength, Flexibility into badge elements -->
+  <!-- categories -> badges -->
   <script>
     document.addEventListener('DOMContentLoaded', function(){
-      // the generator still replaces Strength, Flexibility with a comma-separated string like "Strength, Flexibility"
       var raw = `Strength, Flexibility`.trim();
       if(!raw) return;
       var container = document.getElementById('articleCategories');
-      // split on comma and/or semicolon
       var parts = raw.split(/\s*,\s*|\s*;\s*/).filter(Boolean);
       parts.forEach(function(p){
         var span = document.createElement('span');

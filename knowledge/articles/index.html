@@ -151,6 +151,7 @@
         
   <div class="col-12 col-md-6 col-lg-4">
     <div class="card h-100">
+      <img src="https://res.cloudinary.com/hculyaijt/image/upload/v1762684859/yogastra/articles/msjigeakg8xuybzgkrer.webp" alt="Demo Article 1" class="card-img-top">
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">Demo Article 1</h5>
         <p class="card-text text-muted small fst-italic">By Yogastraa Team · 09/11/2025</p>
@@ -207,11 +208,8 @@
   <!-- Optional client-side fetch (keeps existing dynamic behaviour). It won't break SEO because generator outputs the server list. -->
   <script>
   (function(){
-    // Always try to fetch the live list and render cards into the server container.
-    // This will update the page for visitors even if the static generator hasn't run.
     const API = 'https://yogastra-backend-2d084cc0cf9e.herokuapp.com/articles';
     const serverGrid = document.getElementById('articlesGridServer');
-    // create a client container (we'll overwrite serverGrid.innerHTML)
     const clientGrid = serverGrid || (() => {
       const el = document.createElement('div');
       el.id = 'articlesGridServer';
@@ -235,7 +233,6 @@
       return `${dd}/${mm}/${yyyy}`;
     }
 
-    // show temporary loading
     clientGrid.innerHTML = '<div class="col-12 text-center my-4">Loading latest articles…</div>';
 
     fetch(API, { cache: 'no-store' })
@@ -245,18 +242,19 @@
           clientGrid.innerHTML = '<div class="col-12"><p>No articles published yet.</p></div>';
           return;
         }
-        // build HTML grid (card style)
         const html = data.map(a => {
           const title = a.title || 'Untitled';
           const slug = encodeURIComponent(a.slug || `article-${a.id}`);
           const date = formatDateISOToDDMMYYYY(a.createdAt);
           const author = a.author || 'Yogastraa';
           const excerptText = excerpt(a.content || '', 200);
-          // categories badges
-          const badges = Array.isArray(a.categories) ? a.categories.map(c => `<span class="badge rounded-pill bg-secondary me-1 mb-1">${c.name}</span>`).join('') : '';
+          const badges = Array.isArray(a.categories) ? a.categories.map(c => `<span class="badge rounded-pill bg-secondary me-1 mb-1">${escapeHtml(c.name)}</span>`).join('') : '';
+          const img = (Array.isArray(a.images) && a.images.length) ? a.images[0].url : '';
+          const imgHtml = img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" class="card-img-top">` : '';
           return `
             <div class="col-12 col-md-6 col-lg-4">
               <div class="card h-100">
+                ${imgHtml}
                 <div class="card-body d-flex flex-column">
                   <h5 class="card-title">${escapeHtml(title)}</h5>
                   <p class="card-text text-muted small fst-italic">By ${escapeHtml(author)} · ${escapeHtml(date)}</p>
@@ -275,7 +273,6 @@
         clientGrid.innerHTML = '<div class="col-12 text-danger">Failed to load articles — try again later.</div>';
       });
 
-    // small helper to safely escape text (prevents XSS)
     function escapeHtml(s){
       if (s === null || s === undefined) return '';
       return String(s)
