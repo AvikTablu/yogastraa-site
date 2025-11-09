@@ -66,6 +66,13 @@ function excerptText(text, max = 220) {
     return truncated.replace(/\s+\S*$/, '') + '...';
 }
 
+function youtubeIdFromUrl(url) {
+    if (!url) return null;
+    // handle common youtube URL formats
+    const m = url.match(/(?:v=|\/embed\/|youtu\.be\/|\/v\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : null;
+}
+
 async function main() {
     console.log('Generating articles & tips...');
     await ensureDir(ARTICLES_DIR);
@@ -107,6 +114,47 @@ async function main() {
         const contentHtml = textToHtml(a.content || '');
         const categoriesStr = catNames.length ? catNames.map(escapeHtml).join(', ') : 'General';
 
+        // IMAGES: prepare carousel HTML (if available)
+        const imgs = Array.isArray(a.images) ? a.images : [];
+        let imagesCarouselHtml = '';
+        if (imgs.length === 1) {
+            // single image: simple responsive image block
+            imagesCarouselHtml = `<div class="mb-3 article-carousel"><img src="${escapeHtml(imgs[0].url)}" alt="${escapeHtml(title)}" class="img-fluid rounded" /></div>`;
+        } else if (imgs.length > 1) {
+            // bootstrap carousel (unique id per slug)
+            const cid = `carousel-${slug.replace(/[^a-z0-9_-]/gi, '')}`;
+            const indicators = imgs.map((im, idx) => `<button type="button" data-bs-target="#${cid}" data-bs-slide-to="${idx}" ${idx === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${idx + 1}"></button>`).join('\n');
+            const items = imgs.map((im, idx) => `<div class="carousel-item ${idx === 0 ? 'active' : ''}"><img src="${escapeHtml(im.url)}" class="d-block w-100" alt="${escapeHtml(title)}"></div>`).join('\n');
+            imagesCarouselHtml = `
+<div id="${cid}" class="carousel slide mb-3 article-carousel" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    ${indicators}
+  </div>
+  <div class="carousel-inner">
+    ${items}
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#${cid}" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#${cid}" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>`;
+        }
+
+        // VIDEO: prepare YouTube embed (if available)
+        const videoId = youtubeIdFromUrl(a.videoUrl);
+        let videoEmbedHtml = '';
+        if (videoId) {
+            // responsive embed using bootstrap ratio
+            videoEmbedHtml = `
+<div class="article-video ratio ratio-16x9">
+  <iframe src="https://www.youtube.com/embed/${escapeHtml(videoId)}" title="${escapeHtml(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>`;
+        }
+
         const html = articleTpl
             .replaceAll('{{TITLE}}', escapeHtml(title))
             .replaceAll('{{META_DESC}}', escapeHtml(description))
@@ -119,7 +167,10 @@ async function main() {
             .replaceAll('{{CONTENT}}', contentHtml)
             .replaceAll('{{AUTHOR}}', escapeHtml(a.author || 'Yogastraa Team'))
             .replaceAll('{{CATEGORIES}}', escapeHtml(categoriesStr))
-            .replaceAll('{{SLUG}}', escapeHtml(slug));
+            .replaceAll('{{SLUG}}', escapeHtml(slug))
+            // new placeholders for images & video
+            .replaceAll('{{IMAGES_CAROUSEL}}', imagesCarouselHtml)
+            .replaceAll('{{VIDEO_EMBED}}', videoEmbedHtml);
 
         // write directory-index version
         await fs.writeFile(path.join(dir, 'index.html'), html, 'utf-8');
@@ -127,7 +178,10 @@ async function main() {
         // also write flat file version for compatibility (slug.html)
         await fs.writeFile(path.join(ARTICLES_DIR, `${slug}.html`), html, 'utf-8');
 
-        articlePages.push({ slug, title, urlDir: urlPathDir, urlFile: urlPathFile, date: modified });
+        // firstImage used by articles list
+        const firstImage = imgs.length ? imgs[0].url : '';
+
+        articlePages.push({ slug, title, urlDir: urlPathDir, urlFile: urlPathFile, date: modified, firstImage, foundData: a });
         console.log(`Wrote article: ${slug}`);
     }
 
@@ -140,10 +194,14 @@ async function main() {
         const excerpt = excerptText(found.content || '', 240);
         const badges = (Array.isArray(found.categories) ? found.categories : []).map(c => `<span class="badge rounded-pill bg-secondary me-1 mb-1">${escapeHtml(c.name)}</span>`).join('');
         const author = escapeHtml(found.author || 'Yogastraa Team');
+        const firstImg = (Array.isArray(found.images) && found.images.length) ? found.images[0].url : '';
+
+        const imgHtml = firstImg ? `<img src="${escapeHtml(firstImg)}" alt="${escapeHtml(p.title)}" class="card-img-top">` : '';
 
         return `
   <div class="col-12 col-md-6 col-lg-4">
     <div class="card h-100">
+      ${imgHtml}
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">${escapeHtml(p.title)}</h5>
         <p class="card-text text-muted small fst-italic">By ${author} · ${escapeHtml(datePretty)}</p>

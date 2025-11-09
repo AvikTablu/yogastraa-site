@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://yogastraa.com/sitemap.xml

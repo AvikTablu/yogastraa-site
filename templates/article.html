@@ -162,16 +162,15 @@
       <h1>{{TITLE}}</h1>
       <p class="text-muted">By {{AUTHOR}} · <time datetime="{{DATE}}">{{DATE_PRETTY}}</time></p>
 
-      <!-- IMAGE REMOVED ON PURPOSE (per your request) -->
-      <!-- If you later want the image back, re-add this block:
-         <div class="mb-3">
-           <img src="{{IMAGE}}" alt="{{TITLE}}" class="img-fluid rounded" />
-         </div>
-      -->
+      <!-- IMAGES CAROUSEL placeholder: generator will replace with bootstrap carousel or single img -->
+      {{IMAGES_CAROUSEL}}
 
       <div class="article-content">
         {{CONTENT}}
       </div>
+
+      <!-- VIDEO EMBED placeholder: generator will put youtube embed here if available -->
+      {{VIDEO_EMBED}}
 
       <hr/>
 
@@ -180,8 +179,6 @@
         <!-- the generator still provides a comma-separated {{CATEGORIES}} string,
              the script will split and render badges here -->
       </div>
-
-      <!-- URL removed as requested -->
 
     </article>
   </main>
@@ -223,14 +220,12 @@
       });
   </script>
 
-  <!-- small script to turn the comma-separated {{CATEGORIES}} into badge elements -->
+  <!-- categories -> badges -->
   <script>
     document.addEventListener('DOMContentLoaded', function(){
-      // the generator still replaces {{CATEGORIES}} with a comma-separated string like "Strength, Flexibility"
       var raw = `{{CATEGORIES}}`.trim();
       if(!raw) return;
       var container = document.getElementById('articleCategories');
-      // split on comma and/or semicolon
       var parts = raw.split(/\s*,\s*|\s*;\s*/).filter(Boolean);
       parts.forEach(function(p){
         var span = document.createElement('span');
